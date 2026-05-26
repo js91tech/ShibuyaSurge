@@ -1,0 +1,13 @@
+# Cloudflare Workers (Static Assets mode) — used to host the Vite-built
+# client when Cloudflare Pages isn't available on the account. With this
+# config, `npx wrangler deploy` uploads everything under `apps/client/dist`
+# as edge-cached static assets and serves them directly — no worker code,
+# no server runtime. `not_found_handling = "single-page-application"` keeps
+# client-side React routing working (any unknown path falls back to
+# `index.html`).
+name = "shibuyasurge"
+compatibility_date = "2025-01-01"
+
+[assets]
+directory = "apps/client/dist"
+not_found_handling = "single-page-application"
