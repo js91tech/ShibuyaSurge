@@ -1,0 +1,19 @@
+{
+  "name": "Jujutsu Exorcism: Shibuya Surge",
+  "short_name": "JJK Survivors",
+  "description": "A JJK-themed bullet-heaven survivor for Discord and the open web.",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#05060e",
+  "theme_color": "#7c3aed",
+  "categories": ["games"],
+  "icons": [
+    {
+      "src": "/textures/arena_floor.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

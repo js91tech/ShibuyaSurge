@@ -1,0 +1,41 @@
+{
+  "name": "jjk-survivors",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Jujutsu Exorcism: Shibuya Surge — Discord Activity co-op bullet heaven",
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,magenta \"npm run dev -w @jjk/server\" \"npm run dev -w @jjk/client\"",
+    "dev:client": "npm run dev -w @jjk/client",
+    "dev:solo": "npm run dev -w @jjk/client",
+    "dev:mobile": "npm run dev:mobile -w @jjk/client",
+    "dev:server": "npm run dev -w @jjk/server",
+    "build": "npm run build -w @jjk/game-core -w @jjk/shared-protocol -w @jjk/server -w @jjk/client",
+    "build:server": "npm run build -w @jjk/game-core -w @jjk/shared-protocol -w @jjk/server",
+    "start:server": "npm run start -w @jjk/server",
+    "typecheck": "npm run typecheck -w @jjk/game-core -w @jjk/shared-protocol -w @jjk/server -w @jjk/client",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^15.15.0",
+    "typescript-eslint": "^8.59.4"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "overrides": {
+    "colyseus": "0.15.57",
+    "@colyseus/core": "0.15.57",
+    "@colyseus/schema": "2.0.37",
+    "colyseus.js": "0.15.28"
+  }
+}

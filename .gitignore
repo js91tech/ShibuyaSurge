@@ -1,0 +1,12 @@
+node_modules/
+**/dist/
+apps/server/data/
+.env
+.env.local
+*.log
+.DS_Store
+.turbo
+terminals/
+agent-transcripts/
+.vite/
+.cache/
