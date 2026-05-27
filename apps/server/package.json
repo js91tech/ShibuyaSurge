@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@colyseus/core": "0.15.57",
     "@jjk/game-core": "*",
     "@jjk/shared-protocol": "*",
     "colyseus": "0.15.57",

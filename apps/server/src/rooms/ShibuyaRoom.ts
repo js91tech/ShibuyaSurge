@@ -1,4 +1,4 @@
-import { Room, Client } from "colyseus";
+import { Room, type Client } from "@colyseus/core";
 import {
   CHARACTERS,
   ENEMIES,

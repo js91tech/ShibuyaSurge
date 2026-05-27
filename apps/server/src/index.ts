@@ -9,7 +9,7 @@ dotenv.config();
 import cors from "cors";
 import express from "express";
 import { createServer } from "http";
-import { Server } from "colyseus";
+import { Server } from "@colyseus/core";
 import { authRouter } from "./routes/auth.js";
 import { createMetaRouter } from "./routes/meta.js";
 import { ShibuyaRoom } from "./rooms/ShibuyaRoom.js";
