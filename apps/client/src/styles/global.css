@@ -25,6 +25,9 @@ body,
 #root {
   width: 100%;
   height: 100%;
+  /* Discord mobile iframe: dynamic viewport avoids buttons under system chrome */
+  min-height: 100dvh;
+  min-height: 100vh;
   overflow: hidden;
   background: var(--bg-deep);
   color: var(--text-primary);
@@ -36,7 +39,16 @@ body,
   flex-direction: column;
   width: 100%;
   height: 100%;
+  min-height: 0;
+  min-height: 100dvh;
+  min-height: 100vh;
   padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
+
+.solo-prelude {
+  position: relative;
+  flex: 1;
+  min-height: 0;
 }
 
 .game-container {
@@ -131,12 +143,55 @@ body,
   inset: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0;
   z-index: 10;
   pointer-events: auto;
+  overflow: hidden;
   background: radial-gradient(ellipse at center, rgba(10, 14, 26, 0.7), rgba(10, 14, 26, 0.95));
+}
+
+.lobby-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 12px;
+  width: 100%;
+}
+
+.lobby-heading {
+  font-size: 1.1rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.lobby-footer {
+  flex-shrink: 0;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 10px 12px calc(8px + var(--safe-bottom));
+  background: linear-gradient(
+    to top,
+    rgba(10, 14, 26, 0.98) 70%,
+    rgba(10, 14, 26, 0.85) 90%,
+    transparent
+  );
+  border-top: 1px solid rgba(155, 123, 255, 0.2);
+}
+
+.lobby-footer .btn {
+  flex: 1;
+  min-height: 48px;
 }
 
 .hud-top {
@@ -406,16 +461,22 @@ body,
   text-align: center;
 }
 
-/* Title */
+/* Title — scrollable menu so Play stays reachable on tall phones / Discord iframe */
 .title-screen {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 14px;
+  justify-content: flex-start;
+  gap: 12px;
   z-index: 20;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 16px calc(16px + var(--safe-bottom));
   background: radial-gradient(ellipse at 50% 30%, #1a1040 0%, var(--bg-deep) 55%);
 }
 
@@ -429,10 +490,16 @@ body,
 }
 
 .title-logo {
-  font-size: clamp(1.5rem, 5vw, 2rem);
-  letter-spacing: 0.2em;
+  font-size: clamp(1.35rem, 6vw, 2.5rem);
+  letter-spacing: 0.14em;
   font-weight: 800;
   z-index: 1;
+  background: linear-gradient(135deg, #c084fc, #f472b6, #fbbf24);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .title-sub {
@@ -452,7 +519,12 @@ body,
   flex-direction: column;
   gap: 10px;
   z-index: 1;
-  width: min(280px, 90%);
+  width: min(320px, 100%);
+  flex-shrink: 0;
+}
+
+.title-actions .btn-large {
+  min-height: 48px;
 }
 
 .title-controls {
@@ -1209,32 +1281,12 @@ body,
   max-width: 180px;
 }
 
-/* Title screen */
-.title-screen {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 20px;
-  background: radial-gradient(ellipse at center, #1a1133 0%, #050810 70%);
-}
+/* Title screen — visual polish (layout lives in block above) */
 .title-glow {
   position: absolute;
   inset: 0;
   background: radial-gradient(circle at 50% 40%, rgba(192, 132, 252, 0.25), transparent 60%);
   pointer-events: none;
-}
-.title-logo {
-  font-size: 2.5rem;
-  letter-spacing: 0.18em;
-  background: linear-gradient(135deg, #c084fc, #f472b6, #fbbf24);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
 }
 .title-sub {
   color: var(--text-muted);
@@ -1250,12 +1302,7 @@ body,
   color: var(--text-muted);
   font-size: 0.85rem;
 }
-.title-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 220px;
-}
+/* .title-actions defined above */
 .title-actions-row {
   display: flex;
   gap: 8px;
@@ -1745,5 +1792,59 @@ body,
   transform: translate(-50%, -50%);
   z-index: 7;
   background: rgba(15, 23, 42, 0.85);
+}
+
+/* ── Mobile / touch (Discord Activity on phone) ───────────────── */
+html.touch-device .btn {
+  min-height: 44px;
+}
+
+html.touch-device .btn-large {
+  min-height: 52px;
+  font-size: 1.05rem;
+}
+
+html.viewport-short .title-controls,
+html.touch-device.viewport-short .title-controls {
+  display: none;
+}
+
+html.touch-device .title-logo {
+  font-size: clamp(1.2rem, 5vw, 1.75rem);
+  letter-spacing: 0.1em;
+}
+
+html.touch-device .character-grid {
+  max-width: min(420px, 100%);
+  width: 100%;
+  gap: 8px;
+}
+
+html.touch-device .char-card-portrait-wrap {
+  height: 72px;
+}
+
+html.touch-device .char-card h3 {
+  font-size: 0.9rem;
+}
+
+html.touch-device .char-card p {
+  font-size: 0.72rem;
+}
+
+@media (max-width: 520px), (max-height: 740px) {
+  .title-screen {
+    justify-content: flex-start;
+    padding-top: 8px;
+  }
+
+  .title-controls {
+    display: none;
+  }
+
+  .title-stats {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 

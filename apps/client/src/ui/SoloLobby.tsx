@@ -29,23 +29,25 @@ interface SoloLobbyProps {
 export function SoloLobby({ selected, onSelect, onStart, onBack, extras }: SoloLobbyProps) {
   return (
     <div className="lobby-overlay">
-      <h1 style={{ fontSize: "1.1rem" }}>Choose your sorcerer</h1>
-      <div className="character-grid">
-        {CHARACTER_LIST.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            className={`char-card ${selected === c.id ? "selected" : ""}`}
-            onClick={() => onSelect(c.id)}
-          >
-            <CharacterPortrait characterId={c.id} />
-            <h3>{c.name}</h3>
-            <p>{c.role}</p>
-          </button>
-        ))}
+      <div className="lobby-scroll">
+        <h1 className="lobby-heading">Choose your sorcerer</h1>
+        <div className="character-grid">
+          {CHARACTER_LIST.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className={`char-card ${selected === c.id ? "selected" : ""}`}
+              onClick={() => onSelect(c.id)}
+            >
+              <CharacterPortrait characterId={c.id} />
+              <h3>{c.name}</h3>
+              <p>{c.role}</p>
+            </button>
+          ))}
+        </div>
+        {extras}
       </div>
-      {extras}
-      <div style={{ display: "flex", gap: 10 }}>
+      <div className="lobby-footer">
         <button type="button" className="btn btn-secondary" onClick={onBack}>
           Back
         </button>

@@ -3,7 +3,10 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import { DiscordProvider } from "./discord/DiscordProvider";
 import { RootErrorBoundary } from "./RootErrorBoundary";
+import { initViewportHints } from "./viewport";
 import "./styles/global.css";
+
+initViewportHints();
 
 // PWA service-worker registration (Tier 6 #22). We register on next idle so
 // the initial bundle parse isn't delayed. Failures are swallowed: SW is a

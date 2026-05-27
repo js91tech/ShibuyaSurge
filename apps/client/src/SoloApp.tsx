@@ -432,7 +432,7 @@ export function SoloApp({ onBack, mode, profile, recordRun }: SoloAppProps) {
 
   if (!started) {
     return (
-      <>
+      <div className="app-shell solo-prelude">
         <div className="game-container" ref={gameRef} />
         <SoloLobby
           selected={character}
@@ -453,7 +453,7 @@ export function SoloApp({ onBack, mode, profile, recordRun }: SoloAppProps) {
             </>
           }
         />
-      </>
+      </div>
     );
   }
 

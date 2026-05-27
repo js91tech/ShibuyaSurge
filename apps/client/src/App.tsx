@@ -10,6 +10,7 @@ import { OnlineApp } from "./OnlineApp";
 import { useMetaUserId } from "./meta/useMetaUserId";
 import { useMeta } from "./meta/useMeta";
 import { loadSettings, saveSettings } from "./game/settings";
+import { logViewportSnapshot } from "./viewport";
 
 type Screen = "title" | "solo" | "online" | "settings" | "shop" | "stats";
 type SoloMode = "normal" | "daily" | "practice";
@@ -27,6 +28,17 @@ export default function App() {
   useEffect(() => {
     const s = loadSettings();
     if (!s.tutorialSeen) setShowTutorial(true);
+  }, []);
+
+  useEffect(() => {
+    logViewportSnapshot("App.tsx:mount", "H-viewport");
+    const onResize = () => logViewportSnapshot("App.tsx:resize", "H-viewport");
+    window.addEventListener("resize", onResize);
+    window.visualViewport?.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.visualViewport?.removeEventListener("resize", onResize);
+    };
   }, []);
 
   // Global tap ripple for any `.btn` — flips `data-tap` for ~250ms so the CSS
@@ -81,7 +93,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <div className="app-shell">
       {screen === "title" && (
         <TitleScreen
           talismans={profile?.talismans ?? null}
@@ -119,6 +131,6 @@ export default function App() {
       )}
       {showTutorial && <Tutorial onClose={onTutorialClose} />}
       <ToastFeed />
-    </>
+    </div>
   );
 }
