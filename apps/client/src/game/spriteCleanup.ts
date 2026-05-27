@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { alphaKey, fillRGBFromNearestOpaque } from "./alphaKey";
-import { SPRITE_URLS } from "./spriteAssets";
+import { SPRITE_URLS, SPRITE_STEP_URLS } from "./spriteAssets";
 
 /**
  * Approximate display height we want each sprite key to occupy in-world (px),
@@ -33,14 +33,23 @@ const BAKE_TARGET_H: Record<string, number> = {
   enemy_elite_grade1: 232,
   enemy_elite_grade2: 232,
   enemy_elite_grade3: 232,
+  // Sukuna (King of Curses) bakes slightly taller than the rest of the
+  // disaster-class roster so his silhouette dominates the screen.
   enemy_boss_jogo: 380,
   enemy_boss_hanami: 380,
   enemy_boss_mahito: 380,
   enemy_boss_sukuna: 400,
   enemy_boss_geto: 380,
-  enemy_boss_toji: 370,
+  enemy_boss_toji: 380,
   pickup_xp: 72,
 };
+
+// Mirror every bake target onto the matching `_step` key so the second-pose
+// PNG is downscaled to the same height as its base — the dual-frame walk
+// builder relies on the two textures lining up at a shared frame size.
+for (const [key, value] of Object.entries({ ...BAKE_TARGET_H })) {
+  BAKE_TARGET_H[`${key}_step`] = value;
+}
 
 /**
  * Source PNGs may have near-white backgrounds and large transparent margins.
@@ -180,5 +189,14 @@ export function cleanAllSpriteTextures(scene: Phaser.Scene): void {
     if (seen.has(key)) continue;
     seen.add(key);
     cleanSpriteTexture(scene, key);
+  }
+  // Also clean the second-pose textures so the dual-frame walk builder
+  // sees identically processed base + step PNGs (same alpha key, same
+  // bake height) when it composites them.
+  for (const key of Object.keys(SPRITE_STEP_URLS)) {
+    const stepKey = `${key}_step`;
+    if (seen.has(stepKey)) continue;
+    seen.add(stepKey);
+    cleanSpriteTexture(scene, stepKey);
   }
 }

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { SPRITE_URLS } from "../spriteAssets";
+import { SPRITE_URLS, SPRITE_STEP_URLS } from "../spriteAssets";
 import { registerSpriteAnims } from "../spriteAnims";
 import { cleanAllSpriteTextures } from "../spriteCleanup";
 import { STAGES } from "@jjk/game-core";
@@ -14,6 +14,12 @@ export class BootScene extends Phaser.Scene {
   preload() {
     for (const [key, url] of Object.entries(SPRITE_URLS)) {
       this.load.image(key, url);
+    }
+    // Optional second-pose frames for sorcerers / bosses. The anim builder
+    // crossfades between the idle PNG and the `_step` PNG when both are
+    // present, so the walk cycle uses real art instead of synthesized bob.
+    for (const [key, url] of Object.entries(SPRITE_STEP_URLS)) {
+      this.load.image(`${key}_step`, url);
     }
     // Arena floor textures — one per stage, tiled across the background.
     // Keep `arena_floor` for legacy code paths that hard-code the key
