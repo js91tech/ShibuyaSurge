@@ -10,9 +10,9 @@ Co-op JJK bullet-heaven roguelike built as a **Discord Activity** (web iframe on
 
 ## Custom sprites
 
-Character, enemy, and pickup art live in the workspace [`assets/`](../assets/) folder (PNG). The client loads them via `apps/client/src/game/spriteAssets.ts` (Vite bundles them in dev and build).
+Character, enemy, and pickup art live in [`apps/client/assets/`](apps/client/assets/) (PNG). The client loads them via `apps/client/src/game/spriteAssets.ts` (Vite bundles them in dev and build).
 
-To refresh art: replace PNGs in `assets/`, then restart `npm run dev:solo`. Optional copy to `public/` for static hosting: `node tooling/copy-sprites.mjs`.
+To refresh art: replace PNGs in `apps/client/assets/`, then restart `npm run dev:solo`. Optional copy to `public/` for static hosting: `node tooling/copy-sprites.mjs`. Need to regenerate the committed placeholders? `node tooling/gen-placeholders.mjs`.
 
 Walk/idle animations are built at runtime in `spriteAnims.ts` (4–6 bob frames per sprite from each PNG). Replace the source PNGs to change how the cycles look.
 

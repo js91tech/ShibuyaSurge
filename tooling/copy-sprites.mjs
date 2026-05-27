@@ -7,7 +7,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const src = path.resolve(root, "..", "assets");
+const src = path.resolve(root, "apps/client/assets");
 const dst = path.join(root, "apps/client/public/assets/sprites");
 
 const map = [

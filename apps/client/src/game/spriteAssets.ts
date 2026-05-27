@@ -1,20 +1,20 @@
 /** Custom sprite PNGs (generated art) — imported via Vite from repo `assets/` */
-import yuji from "../../../../../assets/yuji.png";
-import megumi from "../../../../../assets/megumi.png";
-import nobara from "../../../../../assets/nobara.png";
-import gojo from "../../../../../assets/gojo.png";
-import maki from "../../../../../assets/maki.png";
-import toge from "../../../../../assets/toge.png";
-import yuta from "../../../../../assets/yuta.png";
-import enemyFlyer from "../../../../../assets/enemy_flyer.png";
-import enemyCharger from "../../../../../assets/enemy_charger.png";
-import enemySwarm from "../../../../../assets/enemy_swarm.png";
-import enemyTank from "../../../../../assets/enemy_tank.png";
-import enemyRanged from "../../../../../assets/enemy_ranged.png";
-import enemyExploder from "../../../../../assets/enemy_exploder.png";
-import enemyElite from "../../../../../assets/enemy_elite.png";
-import enemyBoss from "../../../../../assets/enemy_boss.png";
-import pickupXp from "../../../../../assets/pickup_xp.png";
+import yuji from "../../assets/yuji.png";
+import megumi from "../../assets/megumi.png";
+import nobara from "../../assets/nobara.png";
+import gojo from "../../assets/gojo.png";
+import maki from "../../assets/maki.png";
+import toge from "../../assets/toge.png";
+import yuta from "../../assets/yuta.png";
+import enemyFlyer from "../../assets/enemy_flyer.png";
+import enemyCharger from "../../assets/enemy_charger.png";
+import enemySwarm from "../../assets/enemy_swarm.png";
+import enemyTank from "../../assets/enemy_tank.png";
+import enemyRanged from "../../assets/enemy_ranged.png";
+import enemyExploder from "../../assets/enemy_exploder.png";
+import enemyElite from "../../assets/enemy_elite.png";
+import enemyBoss from "../../assets/enemy_boss.png";
+import pickupXp from "../../assets/pickup_xp.png";
 
 export const SPRITE_URLS: Record<string, string> = {
   player_yuji: yuji,
