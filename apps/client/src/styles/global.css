@@ -1893,3 +1893,158 @@ html.touch-device .btn-ult {
   }
 }
 
+/* Results + death replay */
+.results-panel {
+  margin: 16px;
+  padding: 24px;
+  max-height: min(92vh, 720px);
+  overflow-y: auto;
+}
+.results-title {
+  font-size: 1.25rem;
+}
+.results-subtitle {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.results-grade {
+  font-size: 2rem;
+  margin: 16px 0;
+  color: #c084fc;
+}
+.results-talisman-line {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+.results-best-line {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+.results-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.death-replay-wrap {
+  margin-top: 16px;
+  padding: 12px;
+}
+.death-replay-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.death-replay-canvas {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: block;
+  margin: 0 auto;
+}
+.death-replay-hint {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 6px;
+}
+
+/* Grimoire */
+.grimoire-modal {
+  max-width: 520px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.grimoire-char-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.grimoire-char-btn.selected {
+  border-color: #c084fc;
+  box-shadow: 0 0 10px rgba(192, 132, 252, 0.35);
+}
+.grimoire-char-blurb {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.grimoire-tech-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.grimoire-tech-item {
+  padding: 10px;
+}
+.grimoire-tech-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.grimoire-tech-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+.grimoire-tech-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 6px 0;
+}
+.grimoire-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.grimoire-tag {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(192, 132, 252, 0.15);
+  color: #e9d5ff;
+}
+.grimoire-synergy-list {
+  list-style: none;
+  font-size: 0.78rem;
+}
+.grimoire-synergy-item {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.grimoire-synergy-item span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+/* Lobby character stats */
+.char-card-stats {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+/* Achievement progress */
+.achievement-progress {
+  font-size: 0.68rem;
+  color: #a78bfa !important;
+  margin-top: 4px !important;
+}
+.achievement-earned-badge {
+  font-size: 0.65rem;
+  color: #c084fc;
+  display: inline-block;
+  margin-top: 4px;
+}
+.achievement-card.locked {
+  opacity: 0.85;
+}
+

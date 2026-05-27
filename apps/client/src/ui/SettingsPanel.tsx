@@ -135,7 +135,16 @@ export function SettingsPanel({ onClose, onChange, showRunOnlyToggles }: Setting
             checked={s.autoPickUpgrade}
             onChange={(e) => patch({ autoPickUpgrade: e.target.checked })}
           />
-          <span>Auto-pick first upgrade (fast runs)</span>
+          <span>Auto-pick upgrades on level-up</span>
+        </label>
+        <label className="setting-row checkbox">
+          <input
+            type="checkbox"
+            checked={s.smartAutoPick}
+            onChange={(e) => patch({ smartAutoPick: e.target.checked })}
+            disabled={!s.autoPickUpgrade}
+          />
+          <span>Smart auto-pick (prefer upgrades & synergies)</span>
         </label>
         <label className="setting-row checkbox">
           <input

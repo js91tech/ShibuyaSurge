@@ -12,29 +12,43 @@ export function Tutorial({ onClose }: TutorialProps) {
             <strong>Move:</strong> <kbd>WASD</kbd> or touch anywhere on screen
           </li>
           <li>
-            <strong>Auto-attack:</strong> your techniques fire on their own — face enemies
+            <strong>Auto-attack:</strong> techniques fire on their own — stay near enemies
           </li>
           <li>
-            <strong>Dash:</strong> <kbd>Shift</kbd> for a short burst with brief i-frames. 3s cooldown.
+            <strong>Dash:</strong> <kbd>Shift</kbd> or the Dash button — brief i-frames, ~3s cooldown
           </li>
           <li>
-            <strong>Domain Expansion:</strong> <kbd>Q</kbd> or the Domain button. One use per run, devastating AoE.
+            <strong>Domain Expansion:</strong> <kbd>Q</kbd> or Domain button — once per run, huge AoE
           </li>
           <li>
-            <strong>Pickups:</strong> green hearts heal, bomb pickups clear a screen of curses.
+            <strong>Level-ups:</strong> collect XP orbs, then pick one of three techniques. Use{" "}
+            <strong>Reroll</strong> or <strong>Banish</strong> once per run if offered
           </li>
           <li>
-            <strong>Levels:</strong> pick up XP orbs to level up and choose a technique
+            <strong>Pickups:</strong> green hearts heal, bombs clear a screen of curses
           </li>
           <li>
-            <strong>Survive 12 minutes:</strong> a Special Grade boss spawns at the end. Reach Grade 1 or Special Grade!
+            <strong>Solo extras:</strong> choose a <strong>stage</strong> and up to three{" "}
+            <strong>mutators</strong> before you start — your last loadout is remembered
           </li>
           <li>
-            <strong>Pause / settings:</strong> <kbd>P</kbd> or <kbd>Esc</kbd> any time
+            <strong>Survive 12 minutes:</strong> a Special Grade boss spawns around 3:00. Grades reward
+            exorcism count
+          </li>
+          <li>
+            <strong>Meta:</strong> earn talismans (1 per 10 exorcisms) for permanent upgrades in the shop
+          </li>
+          <li>
+            <strong>Co-op:</strong> online runs share the arena; revive downed allies; only one Domain
+            active at a time
+          </li>
+          <li>
+            <strong>Pause / settings:</strong> <kbd>P</kbd> or <kbd>Esc</kbd> — open the Grimoire from the
+            title screen for technique reference
           </li>
         </ul>
         <button type="button" className="btn btn-primary" onClick={onClose}>
-          Let's exorcise
+          Let&apos;s exorcise
         </button>
       </div>
     </div>
