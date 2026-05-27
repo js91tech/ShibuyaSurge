@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { postProcessCanvas } from "./spritePostProcess";
 
 const CHAR_IDS = [
   "yuji",
@@ -73,11 +74,14 @@ function buildBobSheet(
     ctx.restore();
   }
 
+  postProcessCanvas(ctx, canvas.width, canvas.height);
+
   if (scene.textures.exists(sheetKey)) {
     scene.textures.remove(sheetKey);
   }
   scene.textures.addCanvas(sheetKey, canvas);
   const tex = scene.textures.get(sheetKey);
+  tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
   for (let i = 0; i < frameCount; i++) {
     tex.add(i, 0, i * w, 0, w, h);
   }
@@ -149,11 +153,14 @@ function buildWalkSheetFromTwo(
     ctx.restore();
   }
 
+  postProcessCanvas(ctx, canvas.width, canvas.height);
+
   if (scene.textures.exists(sheetKey)) {
     scene.textures.remove(sheetKey);
   }
   scene.textures.addCanvas(sheetKey, canvas);
   const tex = scene.textures.get(sheetKey);
+  tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
   for (let i = 0; i < frameCount; i++) {
     tex.add(i, 0, i * w, 0, w, h);
   }

@@ -9,7 +9,7 @@ export function Tutorial({ onClose }: TutorialProps) {
         <h2>Welcome to Shibuya Surge</h2>
         <ul className="tutorial-list">
           <li>
-            <strong>Move:</strong> <kbd>WASD</kbd> or the touch joystick
+            <strong>Move:</strong> <kbd>WASD</kbd> or touch anywhere on screen
           </li>
           <li>
             <strong>Auto-attack:</strong> your techniques fire on their own — face enemies

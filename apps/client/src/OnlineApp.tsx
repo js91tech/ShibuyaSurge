@@ -39,7 +39,6 @@ interface OnlineAppProps {
 export function OnlineApp({ onBack }: OnlineAppProps) {
   const discord = useDiscord();
   const gameRef = useRef<HTMLDivElement>(null);
-  const joystickRef = useRef<HTMLDivElement>(null);
   const phaserRef = useRef<Phaser.Game | null>(null);
   const joystickInstance = useRef<VirtualJoystick | null>(null);
   const keyboardRef = useRef<KeyboardInput | null>(null);
@@ -157,11 +156,20 @@ export function OnlineApp({ onBack }: OnlineAppProps) {
     };
   }, []);
 
+  const showJoystick = phase === "run" && !paused && me && !me.spectating;
   useEffect(() => {
-    if (!joystickRef.current || phase !== "run" || paused) return;
-    joystickInstance.current = new VirtualJoystick(joystickRef.current);
-    return () => joystickInstance.current?.destroy();
-  }, [phase, paused, settings.largeTouch]);
+    if (!showJoystick) {
+      joystickInstance.current?.destroy();
+      joystickInstance.current = null;
+      return;
+    }
+    joystickInstance.current?.destroy();
+    joystickInstance.current = new VirtualJoystick({ largeTouch: settings.largeTouch });
+    return () => {
+      joystickInstance.current?.destroy();
+      joystickInstance.current = null;
+    };
+  }, [showJoystick, settings.largeTouch]);
 
   useEffect(() => {
     if (phase !== "run") return;
@@ -391,7 +399,6 @@ export function OnlineApp({ onBack }: OnlineAppProps) {
     setShowPingWheel(false);
   };
 
-  const showJoystick = phase === "run" && !paused && me && !me.spectating;
   const isSpectating = !!(me?.spectating && phase === "run");
   const cycleSpectator = () => {
     setSpectatorIdx((n) => n + 1);
@@ -418,7 +425,7 @@ export function OnlineApp({ onBack }: OnlineAppProps) {
 
   return (
     <div
-      className={`app-shell ${settings.largeTouch ? "large-touch" : ""} ${settings.colorBlind ? "color-blind" : ""}`}
+      className={`app-shell ${phase === "run" || phase === "paused" ? "in-run" : ""} ${settings.largeTouch ? "large-touch" : ""} ${settings.colorBlind ? "color-blind" : ""}`}
       style={{ ["--hud-scale" as never]: settings.hudScale }}
     >
       <button type="button" className="btn btn-ghost back-btn" onClick={onBack}>
@@ -550,13 +557,6 @@ export function OnlineApp({ onBack }: OnlineAppProps) {
               ? profile.talismans + talismansFromRun(state.exorcismCount)
               : null
           }
-        />
-      )}
-
-      {showJoystick && (
-        <div
-          className={`joystick-zone panel ${settings.largeTouch ? "joystick-large" : ""}`}
-          ref={joystickRef}
         />
       )}
 

@@ -73,7 +73,7 @@ export function TitleScreen({
 
       <div className="title-controls panel">
         <p><kbd>WASD</kbd> move · <kbd>Shift</kbd> dash · <kbd>Q</kbd> Domain · <kbd>P</kbd> pause</p>
-        <p>Touch: left joystick · Dash & Domain buttons bottom-right</p>
+        <p>Touch anywhere to move · Dash & Domain bottom-right</p>
       </div>
     </div>
   );

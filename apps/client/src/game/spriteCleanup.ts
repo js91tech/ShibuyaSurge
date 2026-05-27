@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { alphaKey, fillRGBFromNearestOpaque } from "./alphaKey";
+import { postProcessCanvas } from "./spritePostProcess";
 import { SPRITE_URLS, SPRITE_STEP_URLS } from "./spriteAssets";
 
 /**
@@ -61,6 +61,8 @@ const TRIMMED_DIMS = new Map<string, { w: number; h: number }>();
 const CLEANED_SCENES = new WeakSet<Phaser.Scene>();
 // Global guard so the heavy per-pixel trim only runs once per texture across
 // all scenes / game instances created during the session.
+/** Bump to force re-bake after alpha pipeline changes. */
+const CLEAN_GENERATION = 2;
 const CLEANED_KEYS = new Set<string>();
 
 export function getTrimmedDims(key: string): { w: number; h: number } | undefined {
@@ -81,7 +83,8 @@ function cleanSpriteTexture(
   key: string,
   opts: CleanOpts = {}
 ): void {
-  if (CLEANED_KEYS.has(key)) return;
+  const cleanId = `${key}@g${CLEAN_GENERATION}`;
+  if (CLEANED_KEYS.has(cleanId)) return;
   if (!scene.textures.exists(key)) return;
   const source = scene.textures.get(key).getSourceImage() as
     | HTMLImageElement
@@ -99,17 +102,10 @@ function cleanSpriteTexture(
   if (!ctx) return;
   ctx.drawImage(source, 0, 0);
 
-  const img = ctx.getImageData(0, 0, w, h);
-  const px = img.data;
+  postProcessCanvas(ctx, w, h);
 
-  // Phase 1 (threshold + edge fade) and phase 2 (halo despeckle that catches
-  // the leftover off-white bleed around Toge / Yuta) both live in the shared
-  // `alphaKey` helper so the lobby portrait pipeline gets the exact same
-  // treatment as the Phaser texture bake.
-  alphaKey(px, w, h, {
-    whiteThreshold: opts.whiteThreshold,
-    edgeBand: opts.edgeBand,
-  });
+  const img2 = ctx.getImageData(0, 0, w, h);
+  const px2 = img2.data;
 
   let minX = w;
   let minY = h;
@@ -117,7 +113,7 @@ function cleanSpriteTexture(
   let maxY = -1;
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      const a = px[(y * w + x) * 4 + 3];
+      const a = px2[(y * w + x) * 4 + 3];
       if (a <= 12) continue;
       if (x < minX) minX = x;
       if (y < minY) minY = y;
@@ -135,19 +131,6 @@ function cleanSpriteTexture(
   const cy = Math.max(0, minY - pad);
   const cw = Math.min(w - 1, maxX + pad) - cx + 1;
   const ch = Math.min(h - 1, maxY + pad) - cy + 1;
-
-  // ── Voronoi-style RGB fill across the entire downscale source rect ────
-  // Same trick as the lobby portrait pipeline: replace the RGB of every
-  // not-fully-opaque pixel inside the source rect with its nearest opaque
-  // neighbour's RGB. The high-quality canvas downscale below (and Phaser's
-  // LINEAR sampler downstream) interpolate RGB and alpha independently in
-  // straight-alpha space, so without this fill the keyed-out background's
-  // white RGB bleeds into edge output pixels as a white halo around
-  // dark-clad sorcerers like Toge / Yuta. Two-pass L1 distance transform
-  // handles thin figures with wide bbox margins in O(rect-area).
-  fillRGBFromNearestOpaque(px, w, cx, cy, cw, ch);
-
-  ctx.putImageData(img, 0, 0);
 
   // Optional high-quality downscale to the per-asset bake target. Only shrinks
   // (never enlarges) — undersized sources keep their native pixels untouched.
@@ -176,7 +159,7 @@ function cleanSpriteTexture(
       .setFilter(Phaser.Textures.FilterMode.LINEAR);
   }
   TRIMMED_DIMS.set(key, { w: outW, h: outH });
-  CLEANED_KEYS.add(key);
+  CLEANED_KEYS.add(cleanId);
 }
 
 /** Clean every known sprite key on this scene (idempotent per-scene) */

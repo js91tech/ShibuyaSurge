@@ -4,7 +4,7 @@ const TIPS = [
   "Level up slows time so you can pick a technique safely.",
   "Elites drop more XP — hunt the large purple spirits.",
   "Boss spawns at 3:00 or when the timer runs low.",
-  "WASD or the left joystick to move.",
+  "WASD or touch anywhere on screen to move.",
 ];
 
 export function pickTip(elapsed: number): string {

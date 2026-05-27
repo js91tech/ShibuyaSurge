@@ -35,6 +35,7 @@ body,
 }
 
 .app-shell {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -43,6 +44,12 @@ body,
   min-height: 100dvh;
   min-height: 100vh;
   padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+  touch-action: manipulation;
+}
+
+.app-shell.in-run {
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 .solo-prelude {
@@ -61,6 +68,25 @@ body,
 .game-container canvas {
   display: block;
   margin: 0 auto;
+}
+
+/* Phaser canvas must not steal touches — floating joystick uses document listeners. */
+.app-shell.in-run .game-container canvas {
+  pointer-events: none !important;
+}
+
+html.floating-joystick-active {
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+html.floating-joystick-active .joystick-stick[data-measure="1"],
+html.joystick-large-touch .joystick-stick[data-measure="1"] {
+  --joystick-diameter: min(32vw, 120px);
+}
+
+html.joystick-large-touch .joystick-stick[data-measure="1"] {
+  --joystick-diameter: min(36vw, 140px);
 }
 
 .panel {
@@ -250,15 +276,13 @@ body,
  * A `filter:` on the image itself rasterises it through the filter pipeline
  * with linear sampling, which silently defeats `image-rendering: pixelated`. */
 .char-card-portrait-wrap {
-  display: block;
-  height: 104px;
-  margin-bottom: 8px;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.55));
-  /* Lock to a sensible upper bound so different source resolutions don't
-   * end up at wildly different on-screen sizes. */
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 104px;
+  margin-bottom: 8px;
+  background: transparent;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.55));
 }
 
 .char-card-portrait {
@@ -268,9 +292,9 @@ body,
   width: auto;
   height: auto;
   object-fit: contain;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  -ms-interpolation-mode: nearest-neighbor;
+  /* Portraits are alpha-keyed + RGB-filled in portraitCache; nearest-neighbor
+   * resampling in the browser reintroduces a white halo on dark sprites. */
+  image-rendering: auto;
 }
 
 .char-card h3 {
@@ -310,33 +334,38 @@ body,
   border-color: #c084fc;
 }
 
-.joystick-zone {
-  position: absolute;
-  bottom: calc(24px + var(--safe-bottom));
-  left: calc(24px + var(--safe-left));
-  width: 120px;
-  height: 120px;
-  z-index: 6;
-  pointer-events: auto;
-  /* Override .panel — joystick zone should be near-invisible until touched */
+/* Floating stick visual (attached to document.body while dragging) */
+.joystick-stick {
+  position: fixed;
+  width: var(--joystick-diameter, 112px);
+  height: var(--joystick-diameter, 112px);
+  margin: 0;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  z-index: 9;
   background: transparent !important;
   border: 1px dashed rgba(155, 123, 255, 0.18) !important;
   backdrop-filter: none !important;
   border-radius: 50% !important;
 }
 
+.joystick-stick.joystick-visible {
+  visibility: visible;
+  opacity: 1;
+}
+
 .joystick-active {
   border-radius: 50%;
+}
+
+.joystick-stick.joystick-active.joystick-pressed {
   background: radial-gradient(
     circle,
     rgba(155, 123, 255, 0.15) 0%,
     rgba(0, 0, 0, 0.35) 70%
-  );
-  border: 2px solid rgba(155, 123, 255, 0.25);
-}
-
-.joystick-active.joystick-pressed {
-  border-color: rgba(192, 132, 252, 0.6);
+  ) !important;
+  border: 2px solid rgba(192, 132, 252, 0.6) !important;
   box-shadow: 0 0 24px rgba(155, 123, 255, 0.35);
 }
 
@@ -708,15 +737,15 @@ body,
   bottom: calc(28px + var(--safe-bottom));
   right: calc(220px + var(--safe-right));
   z-index: 7;
-  min-width: 72px;
-  padding: 10px 14px;
+  min-width: 64px;
+  min-height: 40px;
+  padding: 6px 12px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: rgba(15, 23, 42, 0.85);
   border: 1px solid rgba(125, 211, 252, 0.5);
   color: #e0f2fe;
-  position: relative;
   overflow: hidden;
 }
 
@@ -741,18 +770,20 @@ body,
 }
 
 .dash-btn .dash-glyph {
-  font-size: 1.4rem;
+  font-size: 1.15rem;
   font-weight: 700;
   position: relative;
   z-index: 1;
+  line-height: 1;
 }
 
 .dash-btn .dash-label {
-  font-size: 0.85rem;
-  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   position: relative;
   z-index: 1;
+  line-height: 1.1;
 }
 
 .streak-plate {
@@ -1089,15 +1120,6 @@ body,
   font-size: 1rem;
 }
 
-.large-touch .joystick-large {
-  width: min(42vw, 200px);
-  height: min(42vw, 200px);
-}
-
-.joystick-large {
-  width: min(36vw, 180px);
-  height: min(36vw, 180px);
-}
 
 .draft-random {
   margin-top: 10px;
@@ -1686,9 +1708,9 @@ body,
 
 /* ── Ultimate button (Tier 2 #10) ──────────────────────────── */
 .btn-ult {
-  position: fixed;
-  right: 16px;
-  bottom: 96px;
+  position: absolute;
+  right: calc(20px + var(--safe-right));
+  bottom: calc(104px + var(--safe-bottom));
   width: 78px;
   height: 78px;
   border-radius: 50%;
@@ -1830,6 +1852,29 @@ html.touch-device .char-card h3 {
 
 html.touch-device .char-card p {
   font-size: 0.72rem;
+}
+
+/* In-run touch layout: action column on the right */
+html.touch-device .domain-btn {
+  right: calc(12px + var(--safe-right));
+  bottom: calc(12px + var(--safe-bottom));
+  min-width: 88px;
+  min-height: 48px;
+}
+
+html.touch-device .dash-btn {
+  right: calc(12px + var(--safe-right));
+  bottom: calc(68px + var(--safe-bottom));
+  min-width: 80px;
+  min-height: 38px;
+  padding: 5px 10px;
+}
+
+html.touch-device .btn-ult {
+  right: calc(12px + var(--safe-right));
+  bottom: calc(132px + var(--safe-bottom));
+  width: 64px;
+  height: 64px;
 }
 
 @media (max-width: 520px), (max-height: 740px) {

@@ -1,6 +1,8 @@
-import { alphaKey, fillRGBFromNearestOpaque } from "./alphaKey";
+import { postProcessCanvas } from "./spritePostProcess";
 import { SPRITE_URLS } from "./spriteAssets";
 
+/** Bump when portrait processing changes so stale data URLs are not reused. */
+const CACHE_GENERATION = 3;
 const CACHE = new Map<string, string>();
 const PENDING = new Map<string, Promise<string>>();
 const subscribers = new Set<() => void>();
@@ -25,15 +27,10 @@ async function cleanPortrait(url: string): Promise<string> {
   if (!ctx) return url;
   ctx.drawImage(img, 0, 0);
 
+  postProcessCanvas(ctx, w, h);
+
   const data = ctx.getImageData(0, 0, w, h);
   const px = data.data;
-
-  // Same threshold + halo despeckle the in-game Phaser bake uses
-  // (`spriteCleanup.ts`). Toge / Yuta source PNGs have anti-aliased silhouette
-  // edges that sit just under the 232 threshold and would otherwise leave a
-  // visible white box around the lobby card. The shared helper kills those
-  // halo pixels by BFS-flooding from the keyed-out background.
-  alphaKey(px, w, h);
 
   let minX = w;
   let minY = h;
@@ -58,27 +55,6 @@ async function cleanPortrait(url: string): Promise<string> {
   const cw = Math.min(w - 1, maxX + pad) - cx + 1;
   const ch = Math.min(h - 1, maxY + pad) - cy + 1;
 
-  // ── Voronoi-style RGB fill across the entire downscale source rect ────
-  // Source PNGs have a near-pure-white background that `alphaKey` keys to
-  // alpha=0 — but it leaves the RGB channels untouched. Canvas2D's
-  // `drawImage` with `imageSmoothingEnabled: true` interpolates RGB and
-  // alpha independently (straight-alpha, not premultiplied) and its
-  // resampling kernel reaches several source pixels into the keyed-out
-  // region, so the otherwise-invisible white RGB gets blended into edge
-  // output pixels as a clearly visible light-grey halo around dark-clad
-  // sorcerers (Toge / Yuta).
-  //
-  // Fix: before the downscale, replace the RGB of every not-fully-opaque
-  // pixel inside the source rect with the RGB of its nearest opaque
-  // neighbour (computed via a two-pass L1 distance transform — O(N), much
-  // cheaper than a per-pixel BFS that has to fan out 100+ steps for thin
-  // figures). Alpha is untouched so the silhouette is unchanged; we just
-  // make sure the colour the keyed-out region carries through the
-  // resampler is "character edge colour" instead of "white".
-  fillRGBFromNearestOpaque(px, w, cx, cy, cw, ch);
-
-  ctx.putImageData(data, 0, 0);
-
   // Bake to a fixed display-friendly size with a single high-quality
   // downscale here, so the lobby `<img>` never has to re-resample. Anything
   // larger than the trimmed source stays at its native resolution.
@@ -99,24 +75,28 @@ async function cleanPortrait(url: string): Promise<string> {
   return out.toDataURL("image/png");
 }
 
+function cacheId(key: string): string {
+  return `${key}@g${CACHE_GENERATION}`;
+}
+
 function loadPortrait(key: string): string {
   const raw = SPRITE_URLS[key];
   if (!raw) return "";
-  const cached = CACHE.get(key);
+  const id = cacheId(key);
+  const cached = CACHE.get(id);
   if (cached) return cached;
-  if (PENDING.has(key)) return raw;
-
+  if (PENDING.has(id)) return raw;
   PENDING.set(
-    key,
+    id,
     cleanPortrait(raw)
       .then((cleaned) => {
-        CACHE.set(key, cleaned);
-        PENDING.delete(key);
+        CACHE.set(id, cleaned);
+        PENDING.delete(id);
         subscribers.forEach((fn) => fn());
         return cleaned;
       })
       .catch(() => {
-        PENDING.delete(key);
+        PENDING.delete(id);
         return raw;
       })
   );

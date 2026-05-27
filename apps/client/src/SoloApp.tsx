@@ -52,7 +52,6 @@ interface SoloAppProps {
 
 export function SoloApp({ onBack, mode, profile, recordRun }: SoloAppProps) {
   const gameRef = useRef<HTMLDivElement>(null);
-  const joystickRef = useRef<HTMLDivElement>(null);
   const phaserRef = useRef<Phaser.Game | null>(null);
   const joystickRef2 = useRef<VirtualJoystick | null>(null);
   const keyboardRef = useRef<KeyboardInput | null>(null);
@@ -227,13 +226,10 @@ export function SoloApp({ onBack, mode, profile, recordRun }: SoloAppProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, dailySeed, settings.skipSoloLobby]);
 
-  // One-time setup of keyboard/joystick/music when the run begins.
+  // Keyboard + music when a session starts.
   useEffect(() => {
     if (!started) return;
     keyboardRef.current = new KeyboardInput();
-    if (joystickRef.current) {
-      joystickRef2.current = new VirtualJoystick(joystickRef.current);
-    }
     // Pre-warm the music with the picked stage's theme so the chord pad
     // is correct from the first note (otherwise the user briefly hears the
     // default C-minor pad before the scene swaps it).
@@ -276,6 +272,23 @@ export function SoloApp({ onBack, mode, profile, recordRun }: SoloAppProps) {
     // stage changes flow through the scene effect, so we intentionally omit it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [started]);
+
+  // Floating joystick — active only during run / pause (document-level touch).
+  const runUiActive =
+    started && (snap.phase === "run" || snap.phase === "paused");
+  useEffect(() => {
+    if (!runUiActive) {
+      joystickRef2.current?.destroy();
+      joystickRef2.current = null;
+      return;
+    }
+    joystickRef2.current?.destroy();
+    joystickRef2.current = new VirtualJoystick({ largeTouch: settings.largeTouch });
+    return () => {
+      joystickRef2.current?.destroy();
+      joystickRef2.current = null;
+    };
+  }, [runUiActive, settings.largeTouch]);
 
   // Settings that mutate during a run (reduce-motion / color-blind) just
   // forward to the live scene each tick of the input loop. Keep them in refs
@@ -463,7 +476,7 @@ export function SoloApp({ onBack, mode, profile, recordRun }: SoloAppProps) {
 
   return (
     <div
-      className={`app-shell ${settings.largeTouch ? "large-touch" : ""} ${settings.colorBlind ? "color-blind" : ""}`}
+      className={`app-shell ${showRun ? "in-run" : ""} ${settings.largeTouch ? "large-touch" : ""} ${settings.colorBlind ? "color-blind" : ""}`}
       style={{ ["--hud-scale" as never]: settings.hudScale }}
     >
       <div className="game-container" ref={gameRef} />
@@ -562,19 +575,6 @@ export function SoloApp({ onBack, mode, profile, recordRun }: SoloAppProps) {
           }
           ownedIds={snap.player.techniques.map((t) => t.id)}
           onClose={() => setTechDetailId(null)}
-        />
-      )}
-
-      {showRun && !earlyExit && (
-        <div
-          className={`joystick-zone panel ${settings.largeTouch ? "joystick-large" : ""}`}
-          ref={joystickRef}
-        />
-      )}
-      {showRun && earlyExit && (
-        <div
-          className={`joystick-zone panel ${settings.largeTouch ? "joystick-large" : ""}`}
-          ref={joystickRef}
         />
       )}
 
