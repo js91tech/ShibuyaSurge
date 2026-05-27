@@ -5,7 +5,7 @@
 // Bump this whenever the build output or precache list changes so old caches
 // are purged on activate. Cache-first served stale chunks were causing blank
 // screens after deploys that changed module graphs.
-const CACHE = "jjk-survivors-v3";
+const CACHE = "jjk-survivors-v4";
 
 // Pre-cache the shell + the floor texture so the first frame can paint
 // without network. The Vite-built JS/CSS chunks are picked up by the
@@ -60,20 +60,42 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Everything else (JS chunks, images, audio) stays cache-first for speed.
+  // JS / CSS chunks must be NETWORK-FIRST. Cache-first was returning stale
+  // hashes after deploys and — worse — falling back to /index.html on miss,
+  // which causes the browser to try executing HTML as a JS module and blanks
+  // the page. We let chunk 404s propagate so the browser surfaces a real
+  // error instead of a silent unmount.
+  const isHashedAsset =
+    url.pathname.endsWith(".js") ||
+    url.pathname.endsWith(".css") ||
+    url.pathname.endsWith(".mjs");
+  if (isHashedAsset) {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((cache) => cache.put(e.request, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request).then((hit) => hit || Response.error()))
+    );
+    return;
+  }
+
+  // Everything else (images, audio, fonts) stays cache-first for speed.
   e.respondWith(
     caches.match(e.request).then(
       (hit) =>
         hit ||
-        fetch(e.request)
-          .then((res) => {
-            const copy = res.clone();
-            if (res.ok) {
-              caches.open(CACHE).then((cache) => cache.put(e.request, copy));
-            }
-            return res;
-          })
-          .catch(() => caches.match("/index.html"))
+        fetch(e.request).then((res) => {
+          const copy = res.clone();
+          if (res.ok) {
+            caches.open(CACHE).then((cache) => cache.put(e.request, copy));
+          }
+          return res;
+        })
     )
   );
 });
