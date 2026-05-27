@@ -25,6 +25,12 @@ export async function createMetaStore(): Promise<MetaStore> {
   const jsonPath = defaultJsonPath();
 
   if (!dbUrl) {
+    if (process.env.NODE_ENV === "production") {
+      console.warn(
+        `[meta] WARNING: DATABASE_URL is not set in production; using JsonFileMetaStore (${jsonPath}). ` +
+          "This is not durable on most hosts (ephemeral filesystem) and progression may reset."
+      );
+    }
     console.log(`[meta] using JsonFileMetaStore (${jsonPath})`);
     return new JsonFileMetaStore(jsonPath);
   }
