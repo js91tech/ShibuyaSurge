@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@colyseus/core": "0.15.57",
+    "@colyseus/ws-transport": "^0.15.3",
     "@jjk/game-core": "*",
     "@jjk/shared-protocol": "*",
     "colyseus": "0.15.57",

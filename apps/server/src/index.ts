@@ -10,6 +10,7 @@ import cors from "cors";
 import express from "express";
 import { createServer } from "http";
 import { Server } from "@colyseus/core";
+import { WebSocketTransport } from "@colyseus/ws-transport";
 import { authRouter } from "./routes/auth.js";
 import { createMetaRouter } from "./routes/meta.js";
 import { ShibuyaRoom } from "./rooms/ShibuyaRoom.js";
@@ -55,7 +56,13 @@ async function main() {
   app.use("/api", createMetaRouter(store));
 
   const httpServer = createServer(app);
-  const gameServer = new Server({ server: httpServer });
+  // Colyseus 0.15: @colyseus/core's Server is transport-agnostic. The legacy
+  // `colyseus` package wrapper that bundled a default WebSocketTransport
+  // doesn't re-export cleanly under Node 22 strict ESM, so we construct the
+  // transport explicitly here.
+  const gameServer = new Server({
+    transport: new WebSocketTransport({ server: httpServer }),
+  });
   // ShibuyaRoom's onMessage signature predates the Colyseus 0.15 registration API
   // (see FIXME in ShibuyaRoom.ts). Type assertion is safe at runtime.
   gameServer
