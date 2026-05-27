@@ -31,6 +31,26 @@ const DiscordContext = createContext<DiscordContextValue | null>(null);
 
 const CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID ?? "";
 
+/**
+ * Discord injects `frame_id` (and a few other) query params into the activity
+ * iframe URL when it boots us. If they're not present we're definitely not in
+ * a Discord Activity context — so we MUST NOT call `new DiscordSDK(...)` here
+ * because its constructor reads `frame_id` and throws synchronously if it's
+ * missing, which crashed the whole React tree before the error boundary went
+ * in. The check is a cheap URL parse so we can run it module-load-safe.
+ */
+function isInsideDiscordActivity(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("frame_id")) return true;
+    if (window.location.host.endsWith("discordsays.com")) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 function mockDiscord(): DiscordContextValue {
   return {
     discordSdk: null,
@@ -47,26 +67,46 @@ function mockDiscord(): DiscordContextValue {
 }
 
 export function DiscordProvider({ children }: { children: ReactNode }) {
-  const [value, setValue] = useState<DiscordContextValue>({
-    discordSdk: null,
-    ready: false,
-    authenticated: false,
-    accessToken: null,
-    instanceId: null,
-    user: null,
-    participants: [],
-    thermalLevel: "nominal",
-    error: null,
-    isDiscord: !!CLIENT_ID && CLIENT_ID !== "your_client_id_here",
-  });
+  const insideActivity =
+    !!CLIENT_ID && CLIENT_ID !== "your_client_id_here" && isInsideDiscordActivity();
+
+  const [value, setValue] = useState<DiscordContextValue>(
+    insideActivity
+      ? {
+          discordSdk: null,
+          ready: false,
+          authenticated: false,
+          accessToken: null,
+          instanceId: null,
+          user: null,
+          participants: [],
+          thermalLevel: "nominal",
+          error: null,
+          isDiscord: true,
+        }
+      : mockDiscord()
+  );
 
   useEffect(() => {
-    if (!CLIENT_ID || CLIENT_ID === "your_client_id_here") {
+    // `insideActivity` is a render-stable boolean (URL doesn't change at
+    // runtime), so this effect is effectively mount-only. Re-checking here
+    // keeps the deps empty without a lint suppression.
+    if (!isInsideDiscordActivity() || !CLIENT_ID || CLIENT_ID === "your_client_id_here") {
+      return;
+    }
+
+    let discordSdk: DiscordSDK;
+    try {
+      discordSdk = new DiscordSDK(CLIENT_ID);
+    } catch (err) {
+      // Constructor reads `frame_id` and throws if it's missing. We already
+      // gate with isInsideDiscordActivity(), but keep this belt-and-braces so
+      // the React tree never unmounts because of an SDK init throw.
+      console.warn("[discord] SDK constructor failed, using dev mode", err);
       setValue(mockDiscord());
       return;
     }
 
-    const discordSdk = new DiscordSDK(CLIENT_ID);
     let mounted = true;
 
     async function init() {
