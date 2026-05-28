@@ -16,7 +16,13 @@ export type MutatorId =
   | "frenzy"
   | "elite_market"
   | "cursed_dawn"
-  | "spartan";
+  | "spartan"
+  | "no_passives"
+  | "no_weapons"
+  | "low_healing"
+  | "fast_waves"
+  | "draft_scarcity"
+  | "weapon_master";
 
 export interface MutatorDef {
   id: MutatorId;
@@ -87,6 +93,42 @@ export const MUTATORS: MutatorDef[] = [
     blurb: "Start at level 5 with no draft until level 10.",
     color: 0xfbbf24,
   },
+  {
+    id: "no_passives",
+    name: "No Passives",
+    blurb: "Draft never offers passives. Technique damage +10%.",
+    color: 0x94a3b8,
+  },
+  {
+    id: "no_weapons",
+    name: "No Weapons",
+    blurb: "Draft never offers weapons. XP gain +20%.",
+    color: 0x64748b,
+  },
+  {
+    id: "low_healing",
+    name: "Low Healing",
+    blurb: "HP pickups heal 50% less. Spawn rate +10%.",
+    color: 0xf97316,
+  },
+  {
+    id: "fast_waves",
+    name: "Fast Waves",
+    blurb: "Enemy spawn rate +35%. Boss spawns 30s earlier.",
+    color: 0x38bdf8,
+  },
+  {
+    id: "draft_scarcity",
+    name: "Draft Scarcity",
+    blurb: "Only 2 draft options. +1 reroll per level-up.",
+    color: 0xa855f7,
+  },
+  {
+    id: "weapon_master",
+    name: "Weapon Master",
+    blurb: "Weapons can level +2 beyond cap. Cooldowns +10%.",
+    color: 0xeab308,
+  },
 ];
 
 const MUTATOR_BY_ID = new Map(MUTATORS.map((m) => [m.id, m]));
@@ -111,9 +153,15 @@ export interface MutatorEffects {
   eliteSpawnMul: number;
   eliteXpMul: number;
   healDropEnabled: boolean;
+  healValueMul: number;
   swarmOnly: boolean;
   startLevel: number;
   noDraftBeforeLevel: number;
+  banPassive: boolean;
+  banWeapon: boolean;
+  draftOptionCount: number;
+  extraRerolls: number;
+  weaponMaxLevelBonus: number;
 }
 
 export const NEUTRAL_EFFECTS: MutatorEffects = {
@@ -132,9 +180,15 @@ export const NEUTRAL_EFFECTS: MutatorEffects = {
   eliteSpawnMul: 1,
   eliteXpMul: 1,
   healDropEnabled: true,
+  healValueMul: 1,
   swarmOnly: false,
   startLevel: 1,
   noDraftBeforeLevel: 0,
+  banPassive: false,
+  banWeapon: false,
+  draftOptionCount: 3,
+  extraRerolls: 0,
+  weaponMaxLevelBonus: 0,
 };
 
 export function applyMutators(ids: MutatorId[]): MutatorEffects {
@@ -180,6 +234,30 @@ export function applyMutators(ids: MutatorId[]): MutatorEffects {
       case "spartan":
         e.startLevel = Math.max(e.startLevel, 5);
         e.noDraftBeforeLevel = Math.max(e.noDraftBeforeLevel, 10);
+        break;
+      case "no_passives":
+        e.banPassive = true;
+        e.techDmgMul *= 1.1;
+        break;
+      case "no_weapons":
+        e.banWeapon = true;
+        e.xpMul *= 1.2;
+        break;
+      case "low_healing":
+        e.healValueMul *= 0.5;
+        e.spawnRateMul *= 1.1;
+        break;
+      case "fast_waves":
+        e.spawnRateMul *= 1.35;
+        e.bossSpawnAtSec = Math.min(e.bossSpawnAtSec, 150);
+        break;
+      case "draft_scarcity":
+        e.draftOptionCount = Math.min(e.draftOptionCount, 2);
+        e.extraRerolls += 1;
+        break;
+      case "weapon_master":
+        e.weaponMaxLevelBonus = Math.max(e.weaponMaxLevelBonus, 2);
+        e.cooldownMul *= 1.1;
         break;
     }
   }
