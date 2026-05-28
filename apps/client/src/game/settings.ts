@@ -1,4 +1,9 @@
-import type { CharacterId } from "@jjk/game-core";
+import {
+  DEFAULT_STAGE,
+  type CharacterId,
+  type MutatorId,
+  type StageId,
+} from "@jjk/game-core";
 
 export interface GameSettings {
   musicVolume: number;
@@ -8,6 +13,8 @@ export interface GameSettings {
   showTips: boolean;
   showRunStats: boolean;
   autoPickUpgrade: boolean;
+  /** When auto-pick is on, prefer upgrades and synergy picks over the first card. */
+  smartAutoPick: boolean;
   reduceMotion: boolean;
   largeTouch: boolean;
   colorBlind: boolean;
@@ -18,13 +25,13 @@ export interface GameSettings {
   hapticsOn: boolean;
   tutorialSeen: boolean;
   lastCharacter: CharacterId;
+  lastStage: StageId;
+  lastMutators: MutatorId[];
 }
 
 const KEY = "jjk_settings";
 
 export const DEFAULT_SETTINGS: GameSettings = {
-  // Music defaults low — the procedural pad is meant as a bed, not the
-  // foreground; players can boost it from the settings panel.
   musicVolume: 0.3,
   sfxVolume: 0.8,
   particles: "medium",
@@ -32,6 +39,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   showTips: true,
   showRunStats: false,
   autoPickUpgrade: false,
+  smartAutoPick: true,
   reduceMotion: false,
   largeTouch: false,
   colorBlind: false,
@@ -42,6 +50,8 @@ export const DEFAULT_SETTINGS: GameSettings = {
   hapticsOn: true,
   tutorialSeen: false,
   lastCharacter: "yuji",
+  lastStage: DEFAULT_STAGE,
+  lastMutators: [],
 };
 
 export function loadSettings(): GameSettings {
@@ -73,4 +83,16 @@ export function rememberCharacter(id: CharacterId) {
 
 export function loadLastCharacter(): CharacterId {
   return loadSettings().lastCharacter;
+}
+
+export function rememberLoadout(stage: StageId, mutators: MutatorId[]) {
+  saveSettings({ ...loadSettings(), lastStage: stage, lastMutators: mutators });
+}
+
+export function loadLastLoadout(): { stage: StageId; mutators: MutatorId[] } {
+  const s = loadSettings();
+  return {
+    stage: s.lastStage ?? DEFAULT_STAGE,
+    mutators: Array.isArray(s.lastMutators) ? s.lastMutators : [],
+  };
 }

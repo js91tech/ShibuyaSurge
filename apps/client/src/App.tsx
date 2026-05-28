@@ -4,6 +4,7 @@ import { SettingsPanel } from "./ui/SettingsPanel";
 import { TalismanShop } from "./ui/TalismanShop";
 import { StatsScreen } from "./ui/StatsScreen";
 import { Tutorial } from "./ui/Tutorial";
+import { TechniqueGrimoire } from "./ui/TechniqueGrimoire";
 import { ToastFeed } from "./ui/ToastFeed";
 import { SoloApp } from "./SoloApp";
 import { OnlineApp } from "./OnlineApp";
@@ -11,16 +12,13 @@ import { useMetaUserId } from "./meta/useMetaUserId";
 import { useMeta } from "./meta/useMeta";
 import { loadSettings, saveSettings } from "./game/settings";
 
-type Screen = "title" | "solo" | "online" | "settings" | "shop" | "stats";
+type Screen = "title" | "solo" | "online" | "settings" | "shop" | "stats" | "grimoire";
 type SoloMode = "normal" | "daily" | "practice";
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("title");
   const [soloMode, setSoloMode] = useState<SoloMode>("normal");
   const [showTutorial, setShowTutorial] = useState(false);
-  // userId flips from `local:<uuid>` → `discord:<id>` once the embedded SDK
-  // finishes auth. useMeta re-fetches on this change, so the saved profile
-  // loads as soon as we know who the player is in Discord.
   const { userId } = useMetaUserId();
   const { profile, purchase, recordRun, refresh } = useMeta(userId);
 
@@ -29,8 +27,6 @@ export default function App() {
     if (!s.tutorialSeen) setShowTutorial(true);
   }, []);
 
-  // Global tap ripple for any `.btn` — flips `data-tap` for ~250ms so the CSS
-  // pseudo-element animates. Delegated so we don't need refs on every button.
   useEffect(() => {
     const fire = (target: EventTarget | null) => {
       if (!(target instanceof HTMLElement)) return;
@@ -101,12 +97,11 @@ export default function App() {
           onSettings={() => setScreen("settings")}
           onShop={() => setScreen("shop")}
           onStats={() => setScreen("stats")}
+          onGrimoire={() => setScreen("grimoire")}
           onTutorial={() => setShowTutorial(true)}
         />
       )}
-      {screen === "settings" && (
-        <SettingsPanel onClose={() => setScreen("title")} />
-      )}
+      {screen === "settings" && <SettingsPanel onClose={() => setScreen("title")} />}
       {screen === "shop" && (
         <TalismanShop
           profile={profile}
@@ -114,9 +109,8 @@ export default function App() {
           onPurchase={purchase}
         />
       )}
-      {screen === "stats" && (
-        <StatsScreen profile={profile} onClose={() => setScreen("title")} />
-      )}
+      {screen === "stats" && <StatsScreen profile={profile} onClose={() => setScreen("title")} />}
+      {screen === "grimoire" && <TechniqueGrimoire onClose={() => setScreen("title")} />}
       {showTutorial && <Tutorial onClose={onTutorialClose} />}
       <ToastFeed />
     </div>

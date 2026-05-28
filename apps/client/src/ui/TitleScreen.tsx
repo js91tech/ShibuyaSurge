@@ -8,6 +8,7 @@ interface TitleScreenProps {
   onSettings: () => void;
   onShop: () => void;
   onStats: () => void;
+  onGrimoire: () => void;
   onTutorial: () => void;
   talismans?: number | null;
 }
@@ -20,6 +21,7 @@ export function TitleScreen({
   onSettings,
   onShop,
   onStats,
+  onGrimoire,
   onTutorial,
   talismans,
 }: TitleScreenProps) {
@@ -62,17 +64,24 @@ export function TitleScreen({
           </button>
         </div>
         <div className="title-actions-row">
-          <button type="button" className="btn btn-ghost" onClick={onSettings}>
-            Settings
+          <button type="button" className="btn btn-ghost" onClick={onGrimoire}>
+            Grimoire
           </button>
           <button type="button" className="btn btn-ghost" onClick={onTutorial}>
             How to play
           </button>
         </div>
+        <div className="title-actions-row">
+          <button type="button" className="btn btn-ghost" onClick={onSettings}>
+            Settings
+          </button>
+        </div>
       </div>
 
       <div className="title-controls panel">
-        <p><kbd>WASD</kbd> move · <kbd>Shift</kbd> dash · <kbd>Q</kbd> Domain · <kbd>P</kbd> pause</p>
+        <p>
+          <kbd>WASD</kbd> move · <kbd>Shift</kbd> dash · <kbd>Q</kbd> Domain · <kbd>P</kbd> pause
+        </p>
         <p>Touch anywhere to move · Dash & Domain bottom-right</p>
       </div>
     </div>

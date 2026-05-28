@@ -1,4 +1,7 @@
+import { CHARACTER_LIST } from "@jjk/game-core";
 import type { MetaProfile, RunRecord } from "./metaApi";
+
+const ROSTER_IDS = CHARACTER_LIST.map((c) => c.id);
 
 export interface AchievementDef {
   id: string;
@@ -49,11 +52,11 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   {
     id: "all_chars",
     label: "Full Roster",
-    description: "Complete a run with every sorcerer",
+    description: "Complete a run with every playable sorcerer",
     check: (c) => {
       const ids = new Set<string>(Object.keys(c.profile.characterStats));
       ids.add(c.record.characterId);
-      return ["yuji", "megumi", "nobara", "gojo"].every((k) => ids.has(k));
+      return ROSTER_IDS.every((k) => ids.has(k));
     },
   },
   {

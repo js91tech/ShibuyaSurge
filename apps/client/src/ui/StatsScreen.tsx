@@ -1,5 +1,6 @@
 import type { MetaProfile } from "../meta/metaApi";
 import { ACHIEVEMENTS } from "../meta/achievements";
+import { achievementProgressText } from "../meta/achievementProgress";
 import { CHARACTER_LIST } from "@jjk/game-core";
 
 interface StatsScreenProps {

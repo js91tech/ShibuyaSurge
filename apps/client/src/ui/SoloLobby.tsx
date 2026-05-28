@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
-import { CHARACTER_LIST } from "@jjk/game-core";
-import type { CharacterId } from "@jjk/game-core";
+import {
+  CHARACTER_LIST,
+  TECHNIQUES,
+  type CharacterId,
+  type TechniqueId,
+} from "@jjk/game-core";
 import { usePortrait } from "./usePortrait";
 
 function CharacterPortrait({ characterId }: { characterId: string }) {
