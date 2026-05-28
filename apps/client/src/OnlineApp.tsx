@@ -10,6 +10,7 @@ import { KeyboardInput } from "./game/KeyboardInput";
 import { RunScene } from "./game/scenes/RunScene";
 import { shouldMuteMusic } from "./game/thermal";
 import { audioManager } from "./audio/AudioManager";
+import { pickBestDraftOption } from "./game/draftPick";
 import { loadSettings, rememberCharacter, saveHighScore, type GameSettings } from "./game/settings";
 import { talismansFromRun, type RunRecord } from "./meta/metaApi";
 import { newlyEarned } from "./meta/achievements";

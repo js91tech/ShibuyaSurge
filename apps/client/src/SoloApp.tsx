@@ -5,10 +5,13 @@ import { soloEngine } from "./game/solo/SoloEngine";
 import { createPhaserGame } from "./game/createPhaserGame";
 import { VirtualJoystick } from "./game/VirtualJoystick";
 import { KeyboardInput } from "./game/KeyboardInput";
+import { pickBestDraftOption } from "./game/draftPick";
 import {
   loadLastCharacter,
+  loadLastLoadout,
   loadSettings,
   rememberCharacter,
+  rememberLoadout,
   saveHighScore,
   type GameSettings,
 } from "./game/settings";
