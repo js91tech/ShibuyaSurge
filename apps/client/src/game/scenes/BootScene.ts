@@ -24,11 +24,13 @@ export class BootScene extends Phaser.Scene {
     // Arena floor textures — one per stage, tiled across the background.
     // Keep `arena_floor` for legacy code paths that hard-code the key
     // (e.g. fallback when no stage is selected).
-    this.load.image("arena_floor", "textures/arena_floor.png");
-    this.load.image("floor_shibuya", "textures/floor_shibuya.png");
-    this.load.image("floor_subway", "textures/floor_subway.png");
-    this.load.image("floor_forest", "textures/floor_forest.png");
-    this.load.image("floor_goodwill", "textures/floor_goodwill.png");
+    // Use absolute paths so loads work even when the app is served from a
+    // non-root URL path (common on mobile/embedded hosts).
+    this.load.image("arena_floor", "/textures/arena_floor.png");
+    this.load.image("floor_shibuya", "/textures/floor_shibuya.png");
+    this.load.image("floor_subway", "/textures/floor_subway.png");
+    this.load.image("floor_forest", "/textures/floor_forest.png");
+    this.load.image("floor_goodwill", "/textures/floor_goodwill.png");
     this.generateVfxTextures();
   }
 
