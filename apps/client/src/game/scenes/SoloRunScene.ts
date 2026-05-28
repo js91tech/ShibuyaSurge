@@ -31,6 +31,7 @@ export class SoloRunScene extends Phaser.Scene {
   private arena?: ArenaBackground;
   private vfx?: VfxManager;
   private lastAim = 0;
+  private lastFaceLeft = false;
   private enemyHp = new Map<string, number>();
   private reduceMotion = false;
   private colorBlind = false;
@@ -193,7 +194,10 @@ export class SoloRunScene extends Phaser.Scene {
     else this.playerSprite.setAlpha(1);
 
     const moving = Math.hypot(soloEngine.moveX, soloEngine.moveY) > 0.1;
-    const faceLeft = moving ? soloEngine.moveX < -0.05 : Math.cos(this.lastAim) < 0;
+    // Face direction should stick to the last movement input, not snap back
+    // to "right" when the player stops.
+    if (Math.abs(soloEngine.moveX) > 0.05) this.lastFaceLeft = soloEngine.moveX < 0;
+    const faceLeft = this.lastFaceLeft;
     playPlayerAnim(this.playerSprite, p.characterId, { moving, downed: p.downed, faceLeft });
     this.vfx?.updatePlayer(p.x, p.y, moving, p.domainActive);
     if (moving) this.lastAim = soloEngine.aimAngle;
