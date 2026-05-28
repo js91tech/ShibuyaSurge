@@ -9,6 +9,8 @@ import {
   BOSS_IDS,
   spawnRate,
   getDraftOptions,
+  TECHNIQUES,
+  applyEvolutionsToLoadout,
   activeSynergies,
   applyMutators,
   NEUTRAL_EFFECTS as NEUTRAL_MUTATORS,
@@ -624,7 +626,7 @@ export class SoloEngine {
     this.bossDefeated = false;
     this.choosingUpgrade = false;
     this.bannedTechniques.clear();
-    this.rerollsRemaining = 1;
+    this.rerollsRemaining = 1 + this.mutators.extraRerolls;
     this.banishesRemaining = 1;
     this.bossSpecialCooldown = 8;
     this.enemies = [];
@@ -996,10 +998,20 @@ export class SoloEngine {
     const ex = this.techniques.find((t) => t.id === id);
     if (ex) ex.level += 1;
     else this.techniques.push({ id, level: 1 });
+    const before = this.techniques.map((t) => t.id);
+    this.techniques = applyEvolutionsToLoadout(
+      this.techniques,
+      this.mutators.weaponMaxLevelBonus
+    );
+    for (const tid of this.techniques.map((t) => t.id)) {
+      if (!before.includes(tid)) {
+        const def = TECHNIQUES[tid];
+        if (def) eventBus.emit({ kind: "info", message: `Evolution: ${def.name}` });
+      }
+    }
     this.choosingUpgrade = false;
     this.draftOptions = [];
     this.timeScale = 1;
-    // Recompute synergies after the new tech is added.
     this.synergies = activeSynergies(this.techniques.map((t) => t.id));
     this.emit();
   }
@@ -1024,8 +1036,13 @@ export class SoloEngine {
       [],
       this.characterId,
       levels,
-      3,
-      this.unlockedExtras
+      this.mutators.draftOptionCount,
+      this.unlockedExtras,
+      {
+        banPassive: this.mutators.banPassive,
+        banWeapon: this.mutators.banWeapon,
+        weaponMaxLevelBonus: this.mutators.weaponMaxLevelBonus,
+      }
     );
     this.draftOptions = opts.filter((o) => !this.bannedTechniques.has(o));
     while (this.draftOptions.length < 1 && opts.length) {
@@ -1213,12 +1230,16 @@ export class SoloEngine {
    */
   private static readonly TECH_COOLDOWNS: Partial<Record<TechniqueId, number>> = {
     divergent_fist: 0.55, // fast brawler cadence
+    divergent_black_chain: 0.5,
     blue_pull: 0.85, // vortex sphere
+    precision_blue: 0.75,
     red_push: 1.1, // bursty knockback
     // divine_dogs now fires dashing wolves on cadence (was orbital).
     divine_dogs: 0.7,
+    totality_dogs: 0.85,
     nue_bomb: 1.7,
     straw_doll: 0.5, // fast nail spam
+    resonant_rupture: 0.55,
     // Secondary unlockables — sit between their character's primary and ult.
     sukuna_slash: 1.1,
     rabbit_escape: 1.4,
@@ -1498,7 +1519,8 @@ export class SoloEngine {
     this.activeFireTech = tech.id;
     const id = tech.id;
 
-    if (id === "divergent_fist") {
+    if (id === "divergent_fist" || id === "divergent_black_chain") {
+      const chain = id === "divergent_black_chain";
       // Forward fist projectile + delayed cursed-energy impact that lands
       // ~0.25s later at the same target spot. Count scales with level so
       // Yuji feels like he chains punches. Auto-aims at the nearest
@@ -1540,10 +1562,26 @@ export class SoloEngine {
           damage: dmg * 0.85,
           pierce: 0,
           angle: a,
-          delay: 0.25,
+          delay: chain ? 0.18 : 0.25,
           explodeOnDelay: true,
-          explodeRadius: 70,
+          explodeRadius: chain ? 90 + tech.level * 4 : 70,
         });
+        if (chain && isCrit) {
+          this.spawnProjectile({
+            kind: "divergent_impact",
+            x: this.x + Math.cos(a) * (dist + 40),
+            y: this.y + Math.sin(a) * (dist + 40),
+            vx: 0,
+            vy: 0,
+            life: 0.45,
+            damage: dmg * 1.1,
+            pierce: 0,
+            angle: a,
+            delay: 0.35,
+            explodeOnDelay: true,
+            explodeRadius: 85,
+          });
+        }
       }
       if (momentum) {
         const back = aim + Math.PI;
@@ -1563,7 +1601,8 @@ export class SoloEngine {
       return;
     }
 
-    if (id === "straw_doll") {
+    if (id === "straw_doll" || id === "resonant_rupture") {
+      const rupture = id === "resonant_rupture";
       // Cursed Nail Shot — fast nails fly toward the nearest enemy in a
       // tight fan, pierce once on the way in, then embed at the impact
       // spot and detonate after a short delay (Hairpin can early-trigger
@@ -1573,25 +1612,28 @@ export class SoloEngine {
       const aim = target
         ? Math.atan2(target.y - this.y, target.x - this.x)
         : this.aimAngle;
-      const nails = 2 + Math.floor(tech.level / 2); // L1=2 → L6=5
+      const nails = rupture
+        ? 2 + Math.floor(tech.level / 3)
+        : 2 + Math.floor(tech.level / 2);
       const spread = 0.18;
       const start = -((nails - 1) / 2) * spread;
       const chainsTech = this.techniques.find((t) => t.id === "nail_chains");
       const chainsRange = chainsTech ? 60 * chainsTech.level : 0;
+      const boom = (rupture ? 95 : 70) + chainsRange + (rupture ? tech.level * 6 : 0);
       for (let i = 0; i < nails; i++) {
         const a = aim + start + i * spread;
         this.spawnProjectile({
           kind: "embed_nail",
           x: this.x + Math.cos(a) * 18,
           y: this.y + Math.sin(a) * 18,
-          vx: Math.cos(a) * 640,
-          vy: Math.sin(a) * 640,
+          vx: Math.cos(a) * (rupture ? 700 : 640),
+          vy: Math.sin(a) * (rupture ? 700 : 640),
           life: 0.9,
-          damage: dmg * 0.85,
+          damage: dmg * (rupture ? 1.05 : 0.85),
           pierce: 1, // hit once, then embed
           angle: a,
           embed: true,
-          explodeRadius: 70 + chainsRange,
+          explodeRadius: boom,
           markTarget: true,
         });
       }
@@ -1635,11 +1677,12 @@ export class SoloEngine {
       return;
     }
 
-    if (id === "blue_pull") {
+    if (id === "blue_pull" || id === "precision_blue") {
+      const precise = id === "precision_blue";
       // Blue — fires a compressed spatial sphere toward the nearest
       // enemy that pulls nearby enemies inward as it travels and
       // implodes for AoE on contact.
-      const target = this.findNearest(900);
+      const target = precise ? this.findCluster(260) ?? this.findNearest(900) : this.findNearest(900);
       const aim = target
         ? Math.atan2(target.y - this.y, target.x - this.x)
         : this.aimAngle;
@@ -1649,18 +1692,18 @@ export class SoloEngine {
         kind: "blue",
         x: this.x + Math.cos(aim) * 36,
         y: this.y + Math.sin(aim) * 36,
-        vx: Math.cos(aim) * 360,
-        vy: Math.sin(aim) * 360,
+        vx: Math.cos(aim) * (precise ? 420 : 360),
+        vy: Math.sin(aim) * (precise ? 420 : 360),
         life: 1.1,
-        damage: dmg * 1.4,
+        damage: dmg * (precise ? 1.65 : 1.4),
         pierce: 1,
         angle: aim,
         embed: true,
-        explodeRadius: 110 + tech.level * 8,
+        explodeRadius: (precise ? 130 : 110) + tech.level * (precise ? 10 : 8),
       });
       // Aura pull around the player so the sphere "drags" the swarm in.
-      const pullRange = 180 + tech.level * 14;
-      const pullStrength = 4 + tech.level * 0.6;
+      const pullRange = (precise ? 220 : 180) + tech.level * (precise ? 18 : 14);
+      const pullStrength = (precise ? 6 : 4) + tech.level * (precise ? 0.85 : 0.6);
       for (const e of this.enemies) {
         const dx = e.x - this.x;
         const dy = e.y - this.y;
@@ -2105,11 +2148,15 @@ export class SoloEngine {
     // Shadow wolves dash forward, homing on the nearest enemy and biting
     // through them before dissolving. Chimera Shadow Garden adds an extra
     // wolf per cast + flat damage.
-    if (id === "divine_dogs") {
+    if (id === "divine_dogs" || id === "totality_dogs") {
+      const evo = id === "totality_dogs";
       const aim = this.aimAngle;
       const chimera = this.techniques.find((t) => t.id === "chimera_shadow");
-      const wolves = 1 + Math.floor(tech.level / 3) + (chimera ? 1 : 0);
+      const wolves = evo
+        ? 1 + Math.floor(tech.level / 4) + (chimera ? 1 : 0)
+        : 1 + Math.floor(tech.level / 3) + (chimera ? 1 : 0);
       const chimeraDmg = chimera ? 1 + 0.25 * chimera.level : 1;
+      const wolfDmg = dmg * (evo ? 1.55 : 1.2) * chimeraDmg;
       const spread = 0.25;
       const start = -((wolves - 1) / 2) * spread;
       for (let i = 0; i < wolves; i++) {
@@ -2118,11 +2165,11 @@ export class SoloEngine {
           kind: "dash_wolf",
           x: this.x + Math.cos(a) * 24,
           y: this.y + Math.sin(a) * 24,
-          vx: Math.cos(a) * 540,
-          vy: Math.sin(a) * 540,
+          vx: Math.cos(a) * (evo ? 600 : 540),
+          vy: Math.sin(a) * (evo ? 600 : 540),
           life: 0.9,
-          damage: dmg * 1.2 * chimeraDmg,
-          pierce: 3 + Math.floor(tech.level / 2),
+          damage: wolfDmg,
+          pierce: (evo ? 5 : 3) + Math.floor(tech.level / 2),
           angle: a,
           homing: true,
           summon: true,
@@ -3413,8 +3460,9 @@ export class SoloEngine {
       const d = Math.hypot(this.x - g.x, this.y - g.y);
       if (d < absorb) {
         if (g.kind === "health") {
-          this.hp = Math.min(this.maxHp, this.hp + g.value);
-          eventBus.emit({ kind: "health_pickup", x: g.x, y: g.y, amount: g.value });
+          const heal = g.value * this.mutators.healValueMul;
+          this.hp = Math.min(this.maxHp, this.hp + heal);
+          eventBus.emit({ kind: "health_pickup", x: g.x, y: g.y, amount: heal });
         } else if (g.kind === "bomb") {
           // Bomb pickup: AoE around the player nuking trash, partial dmg to elite/boss.
           for (const e of this.enemies) {

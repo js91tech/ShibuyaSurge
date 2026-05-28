@@ -39,6 +39,7 @@ import { StagePicker } from "./ui/StagePicker";
 import { TechniqueDetailModal } from "./ui/TechniqueDetailModal";
 import { DEFAULT_STAGE, getStage, type MutatorId, type StageId } from "@jjk/game-core";
 import { recordDailyScore } from "./meta/dailyLeaderboard";
+import { saveLastBuild } from "./meta/lastBuild";
 
 interface SoloAppProps {
   onBack: () => void;
@@ -360,6 +361,13 @@ export function SoloApp({ onBack, mode, profile, recordRun }: SoloAppProps) {
     if (snap.phase !== "results" || submittedRef.current) return;
     submittedRef.current = true;
     if (mode === "practice") return;
+
+    // Cache the player's last build locally so the title menu stats can show it.
+    saveLastBuild({
+      ts: Date.now(),
+      characterId: snap.player.characterId,
+      techniques: snap.player.techniques.map((t) => ({ id: t.id, level: t.level })),
+    });
 
     const earned = talismansFromRun(snap.exorcismCount);
     const record: RunRecord = {

@@ -101,20 +101,7 @@ export function Hud({
         </div>
       )}
 
-      {me && me.techniques.length > 0 && (
-        <div className="technique-bar panel">
-          {[...me.techniques].flatMap((t) => {
-            if (!t) return [];
-            const def = TECHNIQUES[t.id as keyof typeof TECHNIQUES];
-            return [
-              <div key={t.id} className="tech-chip" title={def?.description}>
-                <span className="tech-name">{def?.name ?? t.id}</span>
-                <span className="tech-lv">Lv.{t.level}</span>
-              </div>,
-            ];
-          })}
-        </div>
-      )}
+      {/* Technique / upgrade list moved to start-menu stats (QoL). */}
 
       <OnlineMinimap state={state} sessionId={sessionId} />
 

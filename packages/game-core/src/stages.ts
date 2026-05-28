@@ -9,7 +9,9 @@ import type { EnemyTypeId } from "./types.js";
 
 export type StageId =
   | "shibuya_crossing"
+  | "shibuya_rooftops"
   | "subway"
+  | "subway_blackout"
   | "cursed_forest"
   | "goodwill_event";
 
@@ -109,6 +111,29 @@ export const STAGES: StageDef[] = [
     ambience: { kind: "neon_rain", color: 0xa78bfa, density: 0.7 },
   },
   {
+    id: "shibuya_rooftops",
+    name: "Shibuya Rooftops",
+    blurb: "Wind-swept heights. Flyers + snipers. Spawn rate +20%.",
+    floorTexture: "floor_rooftops",
+    floorTint: 0x0f172a,
+    floorAlpha: 0.25,
+    bossTint: 0x7f1d1d,
+    domainTint: 0x4c1d95,
+    spawnRateMul: 1.2,
+    bossHpMul: 1.05,
+    enemyPool: ["flyer", "flyer", "ranged", "ranged", "charger"],
+    bossPool: ["boss_sukuna", "boss_jogo"],
+    bossLabel: "King of Curses",
+    music: {
+      chord: [82.41, 98.0, 123.47],
+      cutoff: { calm: 600, combat: 1050, boss: 1550 },
+      lfo: { calm: 0.09, combat: 0.15, boss: 0.22 },
+      wave: "triangle",
+      trackUrl: "audio/stage_shibuya.wav",
+    },
+    ambience: { kind: "neon_rain", color: 0xc4b5fd, density: 0.55 },
+  },
+  {
     id: "subway",
     name: "Subway Tunnel",
     blurb: "Claustrophobic. Tanks + swarms. Spawn rate +15%, boss HP −10%.",
@@ -134,6 +159,29 @@ export const STAGES: StageDef[] = [
       trackUrl: "audio/stage_subway.wav",
     },
     ambience: { kind: "dust", color: 0x9ca3af, density: 0.5 },
+  },
+  {
+    id: "subway_blackout",
+    name: "Subway Blackout",
+    blurb: "Pitch dark tunnels. Swarms + exploders. Spawn +30%, boss HP −15%.",
+    floorTexture: "floor_blackout",
+    floorTint: 0x020617,
+    floorAlpha: 0.55,
+    bossTint: 0x7f1d1d,
+    domainTint: 0x1e1b4b,
+    spawnRateMul: 1.3,
+    bossHpMul: 0.85,
+    enemyPool: ["swarm", "swarm", "exploder", "exploder", "charger"],
+    bossPool: ["boss_mahito", "boss_toji"],
+    bossLabel: "Soul Sculptor",
+    music: {
+      chord: [55.0, 65.41, 73.42],
+      cutoff: { calm: 300, combat: 680, boss: 1050 },
+      lfo: { calm: 0.06, combat: 0.11, boss: 0.18 },
+      wave: "sine",
+      trackUrl: "audio/stage_subway.wav",
+    },
+    ambience: { kind: "dust", color: 0x64748b, density: 0.75 },
   },
   {
     id: "cursed_forest",

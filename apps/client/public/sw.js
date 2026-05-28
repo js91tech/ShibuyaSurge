@@ -15,6 +15,12 @@ const PRECACHE_URLS = [
   "/index.html",
   "/manifest.webmanifest",
   "/textures/arena_floor.png",
+  "/textures/floor_shibuya.png",
+  "/textures/floor_rooftops.png",
+  "/textures/floor_subway.png",
+  "/textures/floor_blackout.png",
+  "/textures/floor_forest.png",
+  "/textures/floor_goodwill.png",
 ];
 
 self.addEventListener("install", (e) => {

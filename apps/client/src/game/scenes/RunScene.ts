@@ -267,14 +267,19 @@ export class RunScene extends Phaser.Scene {
 
       const moveX = isMe ? this.joystick.moveX : dx;
       const moveY = isMe ? this.joystick.moveY : 0;
-      const moving = isMe
-        ? Math.hypot(moveX, moveY) > 0.1
-        : Math.abs(dx) > 2;
-      if (moving) {
-        const faceLeft = isMe ? moveX < -0.05 : dx < 0;
-        this.playerFace.set(sid, faceLeft);
-      }
-      const faceLeft = this.playerFace.get(sid) ?? false;
+      const moving = isMe ? Math.hypot(moveX, moveY) > 0.1 : Math.abs(dx) > 2;
+      // Persist facing from last meaningful movement, otherwise players snap
+      // back to facing-right whenever they stop.
+      const prevFaceLeft = this.playerFace.get(sid) ?? false;
+      const nextFaceLeft = isMe
+        ? Math.abs(moveX) > 0.05
+          ? moveX < 0
+          : prevFaceLeft
+        : moving
+          ? dx < 0
+          : prevFaceLeft;
+      this.playerFace.set(sid, nextFaceLeft);
+      const faceLeft = nextFaceLeft;
       playPlayerAnim(spr, p.characterId, {
         moving,
         downed: p.downed,

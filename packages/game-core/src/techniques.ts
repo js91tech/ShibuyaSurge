@@ -578,6 +578,38 @@ export const TECHNIQUES: Record<TechniqueId, TechniqueDef> = {
     characterIds: ["yuta"],
     tags: ["ultimate"],
   },
+  divergent_black_chain: {
+    id: "divergent_black_chain",
+    name: "Black Flash Chain",
+    description: "Evolved Divergent Fist — crits chain an extra delayed impact.",
+    maxLevel: 8,
+    characterIds: ["yuji"],
+    tags: ["melee", "weapon", "evolution"],
+  },
+  totality_dogs: {
+    id: "totality_dogs",
+    name: "Totality Hounds",
+    description: "Evolved Divine Dogs — fewer wolves, heavier bites and cleave.",
+    maxLevel: 8,
+    characterIds: ["megumi"],
+    tags: ["summon", "weapon", "evolution"],
+  },
+  resonant_rupture: {
+    id: "resonant_rupture",
+    name: "Resonant Rupture",
+    description: "Evolved nails — larger embed detonations on marked targets.",
+    maxLevel: 8,
+    characterIds: ["nobara"],
+    tags: ["ranged", "weapon", "evolution"],
+  },
+  precision_blue: {
+    id: "precision_blue",
+    name: "Precision Blue",
+    description: "Evolved Blue — stronger pull and smarter cluster targeting.",
+    maxLevel: 8,
+    characterIds: ["gojo"],
+    tags: ["magic", "weapon", "evolution"],
+  },
 };
 
 /**
@@ -715,21 +747,91 @@ export function activeSynergies(ownedIds: TechniqueId[]): SynergyPair[] {
 
 export const TECHNIQUE_LIST = Object.values(TECHNIQUES);
 
+/** In-run weapon evolutions — granted when base weapon is maxed and prereqs are owned. */
+export interface EvolutionRecipe {
+  baseId: TechniqueId;
+  evolvedId: TechniqueId;
+  /** All must be owned at max level. */
+  requires: TechniqueId[];
+}
+
+export const EVOLUTIONS: EvolutionRecipe[] = [
+  {
+    baseId: "divergent_fist",
+    evolvedId: "divergent_black_chain",
+    requires: ["black_flash"],
+  },
+  {
+    baseId: "divine_dogs",
+    evolvedId: "totality_dogs",
+    requires: ["chimera_shadow"],
+  },
+  {
+    baseId: "straw_doll",
+    evolvedId: "resonant_rupture",
+    requires: ["resonance"],
+  },
+  {
+    baseId: "blue_pull",
+    evolvedId: "precision_blue",
+    requires: ["six_eyes"],
+  },
+];
+
+export interface DraftFilterOptions {
+  banPassive?: boolean;
+  banWeapon?: boolean;
+  weaponMaxLevelBonus?: number;
+}
+
+function effectiveMaxLevel(def: TechniqueDef, bonus: number): number {
+  if (!def.tags.includes("weapon")) return def.maxLevel;
+  return def.maxLevel + bonus;
+}
+
+/** Replace maxed base weapons with evolutions when recipes are satisfied. */
+export function applyEvolutionsToLoadout(
+  owned: { id: TechniqueId; level: number }[],
+  weaponMaxLevelBonus = 0
+): { id: TechniqueId; level: number }[] {
+  const out = owned.map((t) => ({ ...t }));
+  const levelOf = (id: TechniqueId) => out.find((t) => t.id === id)?.level ?? 0;
+  const hasMax = (id: TechniqueId) => {
+    const def = TECHNIQUES[id];
+    if (!def) return false;
+    return levelOf(id) >= effectiveMaxLevel(def, weaponMaxLevelBonus);
+  };
+
+  for (const evo of EVOLUTIONS) {
+    if (out.some((t) => t.id === evo.evolvedId)) continue;
+    const base = out.find((t) => t.id === evo.baseId);
+    if (!base || !hasMax(evo.baseId)) continue;
+    if (!evo.requires.every((r) => hasMax(r))) continue;
+    base.id = evo.evolvedId;
+    base.level = Math.max(1, base.level);
+  }
+  return out;
+}
+
 export function getDraftOptions(
   ownedIds: TechniqueId[],
   characterId: string,
   ownedLevels: Record<string, number> = {},
   count = 3,
-  unlockedExtras: TechniqueId[] = []
+  unlockedExtras: TechniqueId[] = [],
+  filter: DraftFilterOptions = {}
 ): TechniqueId[] {
   const unlockedSet = new Set(unlockedExtras);
+  const weaponBonus = filter.weaponMaxLevelBonus ?? 0;
   const pool = TECHNIQUE_LIST.filter((t) => {
     const level = ownedLevels[t.id] ?? 0;
-    if (level >= t.maxLevel) return false;
+    if (level >= effectiveMaxLevel(t, weaponBonus)) return false;
     if (t.characterIds && !t.characterIds.includes(characterId as never)) return false;
-    // Synergy passives are never offered directly — they're granted by the engine.
     if (t.tags.includes("synergy")) return false;
-    // Unlockable secondaries only appear when the player has purchased/unlocked them.
+    if (t.tags.includes("evolution")) return false;
+    if (t.tags.includes("ultimate")) return false;
+    if (filter.banPassive && t.tags.includes("passive")) return false;
+    if (filter.banWeapon && t.tags.includes("weapon")) return false;
     if (t.tags.includes("unlock") && !unlockedSet.has(t.id)) return false;
     return true;
   }).map((t) => t.id);

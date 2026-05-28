@@ -14,6 +14,7 @@ import { pickBestDraftOption } from "./game/draftPick";
 import { loadSettings, rememberCharacter, saveHighScore, type GameSettings } from "./game/settings";
 import { talismansFromRun, type RunRecord } from "./meta/metaApi";
 import { newlyEarned } from "./meta/achievements";
+import { saveLastBuild } from "./meta/lastBuild";
 import { useMeta } from "./meta/useMeta";
 import { useMetaUserId } from "./meta/useMetaUserId";
 import { eventBus, type PingTag } from "./game/eventBus";
@@ -340,6 +341,15 @@ export function OnlineApp({ onBack }: OnlineAppProps) {
     const earned = talismansFromRun(state.exorcismCount);
     saveHighScore(state.exorcismCount);
     const myChar = me?.characterId ?? selectedCharacterRef.current;
+
+    saveLastBuild({
+      ts: Date.now(),
+      characterId: myChar,
+      techniques: [...(me?.techniques ?? [])].flatMap((t) =>
+        t ? [{ id: t.id as never, level: t.level }] : []
+      ),
+    });
+
     const myLevel = me?.level ?? 1;
     const record: RunRecord = {
       ts: Date.now(),

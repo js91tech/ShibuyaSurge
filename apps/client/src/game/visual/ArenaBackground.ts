@@ -46,6 +46,7 @@ export class ArenaBackground {
   private domainActive = false;
   private stage: StageDef | undefined;
   private currentTextureKey: string | null = null;
+  private desiredTextureKey: string = "arena_floor";
   /** Ambient particle layer — populated lazily when the stage requests it. */
   private ambient: AmbienceParticle[] = [];
   private ambientKind: AmbienceConfig["kind"] = "none";
@@ -58,20 +59,9 @@ export class ArenaBackground {
     this.scene = scene;
     this.fallback = scene.add.rectangle(0, 0, 8000, 8000, 0x05060e).setDepth(-101);
 
-    if (scene.textures.exists("arena_floor")) {
-      this.tile = scene.add
-        .tileSprite(0, 0, 4000, 4000, "arena_floor")
-        .setDepth(-100)
-        .setAlpha(0.95);
-      // Each source texture is ~1536x1024; scaling the *tile* by 1.6 makes
-      // one repeat ~2400x1600 — comfortably larger than any plausible
-      // viewport so the seam between repeats is rarely on-screen, which
-      // hides the fact that the AI-generated floors aren't perfectly
-      // seamless. We also use linear filtering already, so the scale-up
-      // stays crisp.
-      this.tile.setTileScale(1.6);
-      this.currentTextureKey = "arena_floor";
-    }
+    // Tile is created lazily because on some devices the texture may not be
+    // registered yet when the scene constructs the background.
+    this.ensureTile("arena_floor");
 
     // Stage tint (rarely changes) and mood tint (boss/domain) are two
     // separate rectangles so we can author them independently and avoid
@@ -87,20 +77,8 @@ export class ArenaBackground {
     // Falls back to the legacy `arena_floor` for stages still using a tint
     // over the base texture (and for stage-less modes like Daily / Practice).
     const desiredKey = stage?.floorTexture ?? "arena_floor";
-    if (desiredKey !== this.currentTextureKey && this.scene.textures.exists(desiredKey)) {
-      if (this.tile) {
-        this.tile.setTexture(desiredKey);
-        // Re-assert tile scale — `setTexture` resets some derived state.
-        this.tile.setTileScale(1.6);
-      } else {
-        this.tile = this.scene.add
-          .tileSprite(0, 0, 4000, 4000, desiredKey)
-          .setDepth(-100)
-          .setAlpha(0.95);
-        this.tile.setTileScale(1.6);
-      }
-      this.currentTextureKey = desiredKey;
-    }
+    this.desiredTextureKey = desiredKey;
+    if (desiredKey !== this.currentTextureKey) this.ensureTile(desiredKey);
     if (stage) {
       this.stageTint.setFillStyle(stage.floorTint, stage.floorAlpha);
     } else {
@@ -232,6 +210,11 @@ export class ArenaBackground {
     this.fallback.setPosition(cx, cy);
     this.stageTint.setPosition(cx, cy);
     this.tint.setPosition(cx, cy);
+    // If the texture finished loading after we were constructed (common on
+    // mobile under memory pressure), create/swap the tile on the next frame.
+    if (!this.tile || this.currentTextureKey !== this.desiredTextureKey) {
+      this.ensureTile(this.desiredTextureKey);
+    }
     if (this.tile) {
       this.tile.setPosition(cx, cy);
       // Anchor the floor 1:1 with world coords (no parallax drift). With
@@ -242,6 +225,24 @@ export class ArenaBackground {
       this.tile.tilePositionY = camera.scrollY / this.tile.tileScaleY;
     }
     this.tickAmbience(cx, cy, dt);
+  }
+
+  private ensureTile(key: string) {
+    if (!this.scene.textures.exists(key)) return;
+    if (this.tile) {
+      if (this.currentTextureKey !== key) {
+        this.tile.setTexture(key);
+        this.tile.setTileScale(1.6);
+        this.currentTextureKey = key;
+      }
+      return;
+    }
+    this.tile = this.scene.add
+      .tileSprite(0, 0, 4000, 4000, key)
+      .setDepth(-100)
+      .setAlpha(0.95);
+    this.tile.setTileScale(1.6);
+    this.currentTextureKey = key;
   }
 
   /**

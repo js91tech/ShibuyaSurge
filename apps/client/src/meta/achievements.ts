@@ -1,7 +1,7 @@
-import { CHARACTER_LIST } from "@jjk/game-core";
+import { CHARACTER_LIST, type CharacterId } from "@jjk/game-core";
 import type { MetaProfile, RunRecord } from "./metaApi";
 
-const ROSTER_IDS = CHARACTER_LIST.map((c) => c.id);
+const ROSTER_IDS: CharacterId[] = CHARACTER_LIST.map((c) => c.id as CharacterId);
 
 export interface AchievementDef {
   id: string;

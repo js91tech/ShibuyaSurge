@@ -105,7 +105,12 @@ export type TechniqueId =
   | "true_love_arsenal" // evolution active: rotating orbital katana + beam
   | "summon_scaling" // passive: summon dmg scales with kill streak
   | "crit_mini_rika" // passive: crits spawn mini Rika bites
-  | "love_beam"; // ultimate active: long continuous beam
+  | "love_beam" // ultimate active: long continuous beam
+  // ── Character evolution upgrades (granted in-run, not drafted). ─────
+  | "divergent_black_chain"
+  | "totality_dogs"
+  | "resonant_rupture"
+  | "precision_blue";
 
 export interface CharacterDef {
   id: CharacterId;

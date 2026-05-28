@@ -109,38 +109,7 @@ export function SoloHud({
         </div>
       </div>
 
-      <div className="technique-bar panel">
-        {p.techniques.map((t) => {
-          const def = TECHNIQUES[t.id];
-          const passive = t.cooldownMax === undefined;
-          const ratio =
-            !passive && t.cooldownMax
-              ? 1 - Math.min(1, (t.cooldown ?? 0) / t.cooldownMax)
-              : 1;
-          const tooltip = def
-            ? `${def.name}\n${def.description}${passive ? "" : `\nFires every ${(t.cooldownMax ?? 0).toFixed(2)}s`}`
-            : t.id;
-          return (
-            <button
-              type="button"
-              key={t.id}
-              className={`tech-chip ${passive ? "tech-passive" : ""}`}
-              title={tooltip}
-              onClick={() => onTechChipClick?.(t.id)}
-            >
-              <span className="tech-name">{def?.name ?? t.id}</span>
-              <span className="tech-lv">Lv.{t.level}</span>
-              {!passive && (
-                <span
-                  className="tech-cd-bar"
-                  style={{ ["--cd-progress" as never]: ratio }}
-                  aria-hidden
-                />
-              )}
-            </button>
-          );
-        })}
-      </div>
+      {/* Technique / upgrade list moved to start-menu stats (QoL). */}
 
       <Minimap snap={snap} />
 
